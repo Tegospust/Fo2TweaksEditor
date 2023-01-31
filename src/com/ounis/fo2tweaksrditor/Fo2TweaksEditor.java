@@ -4,6 +4,7 @@
  */
 package com.ounis.fo2tweaksrditor;
 
+import java.io.File;
 import javax.swing.JOptionPane;
 
 /**
@@ -45,7 +46,20 @@ public class Fo2TweaksEditor {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
 //                String par = args.length > 0 ? args[0] : "";
-                new MainFrame(args.length > 0 ?  args[0] : null).setVisible(true);
+                if (args.length > 0) {
+                    File f = new File(args[0]);
+                    if (!(new File(args[0])).exists())
+                        JOptionPane.showMessageDialog(null, 
+                                String.format("Plik %s nie istnieje!!!", args[0]),
+                                "Błąd", JOptionPane.ERROR_MESSAGE
+                        );
+                    else
+                        new MainFrame(args[0]).setVisible(true);
+                }
+                else
+                    JOptionPane.showMessageDialog(null, 
+                            "Brak parametru nazwy pliku!!!\nFo2WeaksEditor.jar <plik.ini>",
+                            "Błąd", JOptionPane.CANCEL_OPTION);
             }
         });
     }
