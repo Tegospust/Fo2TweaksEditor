@@ -12,8 +12,9 @@ public class CONST {
     
     public static final String FILE_FO2TWEAKS = "fo2tweaks.ini"; 
     public static final String REM_CHAR = ";";
+    public static final String KEY_VAL_SEP = "=";
     public static final String DEF_SPEC_LINE_VAL_SEP = " - ";
-    private static final String STR_PAR_LINE_NUM = "%d";
+    private static final String STR_PAR_LINE_NUM = "#%d";
     private static final String STR_PAR_SECTION = "%s";
     private static final String STR_PAR_KEY_VAL = "%s";
             
