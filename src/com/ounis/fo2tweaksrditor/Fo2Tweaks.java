@@ -9,6 +9,28 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 
+
+        //        lista z innymi listami
+// może się przydać
+//        List<List<String>> l = new  ArrayList<List<String>>();
+//        l.add(new ArrayList<>());
+//        l.get(0).add("ROMANI");
+//        l.get(0).add("ITE");
+//        l.get(0).add("DOMUM");
+//        
+//        l.add(new ArrayList<>());
+//        
+//        
+//        
+//        for(char ch: "ROMANI ITE DOMUM".toCharArray()) 
+//            System.out.printf("%s ",ch);
+//        
+//        System.out.println();
+//        for(String str: l.get(0)) {
+//            if (str != null)
+//                System.out.println(str);
+//        }
+
 /**
  *
  * @author AndroidDev

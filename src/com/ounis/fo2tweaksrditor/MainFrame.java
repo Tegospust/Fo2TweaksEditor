@@ -27,6 +27,12 @@ import javax.swing.event.ListDataListener;
 public class MainFrame extends javax.swing.JFrame {
 
     private DefaultListModel lmSections;
+    private String fileName;
+
+    private boolean FileLoadErr = false;
+    public boolean isFileLoaded() {
+        return !this.FileLoadErr;
+    }
     
      class BtnDelSectClick implements ActionListener {
 
@@ -57,21 +63,22 @@ public class MainFrame extends javax.swing.JFrame {
                 else {
                     System.out.printf("%d - %d\n", linenum, line.length());
                     if (line.length() == 0) {
-                        res.add(String.format("%d - %s",linenum, line));
+                        res.add(String.format(" ",linenum, line));
                         continue;
                     }
-                    if (line.startsWith(";")) {
+                    if (line.startsWith(CONST.REM_CHAR)) {
                         res.add(line);
                         continue;
                     }
                     String keyval = line;
-                    String specLine = String.format("%s - %d %s", section, linenum, keyval);
+                    String specLine = String.format(CONST.DEF_SPEC_LINE, linenum,section, keyval);
                     res.add(specLine);
                 }
             }
         }
         catch (Exception  e) {
             res.clear();
+            this.FileLoadErr = true;
         }
          
          return res;
@@ -80,43 +87,26 @@ public class MainFrame extends javax.swing.JFrame {
     /**
      * Creates new form MainFrame
      */
-    public MainFrame() {
+    public MainFrame(String aFileName) {
+        boolean b = true;
+        if (!(aFileName == null))
+            this.fileName = aFileName;
+        else
+            this.fileName = CONST.FILE_FO2TWEAKS;
+        
         initComponents();
         FramesUtils.centerWindow(this);
         this.setTitle("Fo2Tweaks");
-        JOptionPane.showMessageDialog(null, CONST.FILE_FO2TWEAKS);
+        JOptionPane.showMessageDialog(null, this.fileName);
         
-        //        lista z innymi listami
-        List<List<String>> l = new  ArrayList<List<String>>();
-        l.add(new ArrayList<>());
-        l.get(0).add("ROMANI");
-        l.get(0).add("ITE");
-        l.get(0).add("DOMUM");
-        
-        l.add(new ArrayList<>());
-        
-        
-        
-        for(char ch: "ROMANI ITE DOMUM".toCharArray()) 
-            System.out.printf("%s ",ch);
-        
-        System.out.println();
-        for(String str: l.get(0)) {
-            if (str != null)
-                System.out.println(str);
-        }
-        
-        ArrayList<String> specLines = loadLines(CONST.FILE_FO2TWEAKS);
+        ArrayList<String> specLines = loadLines(this.fileName);
         lmSections = new DefaultListModel();
         lmSections.addAll(specLines);
-        
-        
-        
-//        btnDelSect.addActionListener(new BtnDelSectClick());
-        
-        
         lstSections.setModel(lmSections);
         
+        
+        //        btnDelSect.addActionListener(new BtnDelSectClick());
+
         
         }
         
@@ -141,7 +131,7 @@ public class MainFrame extends javax.swing.JFrame {
         lblSections.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         lblSections.setText("Sekcje");
 
-        lstSections.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        lstSections.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jScrollPane1.setViewportView(lstSections);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

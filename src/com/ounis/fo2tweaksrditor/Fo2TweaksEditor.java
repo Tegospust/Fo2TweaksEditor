@@ -44,7 +44,8 @@ public class Fo2TweaksEditor {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainFrame().setVisible(true);
+//                String par = args.length > 0 ? args[0] : "";
+                new MainFrame(args.length > 0 ?  args[0] : null).setVisible(true);
             }
         });
     }
