@@ -42,6 +42,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private DefaultListModel<String> lmSections;
     private String fileName;
+    
 
     private boolean fileLoadErr = false;
     public boolean isFileLoaded() {
@@ -105,8 +106,18 @@ public class MainFrame extends javax.swing.JFrame {
      }
      
      
-    private boolean saveLines(String aFileName, DefaultListModel alistModel) throws IOException {
-        boolean result = false;
+    private String makeBackupFileName(String aFileName) {
+//        String fn = aFileName.split("\\.")[0];
+//        String fe = aFileName.split("\\.")[1];
+//        return fn.concat(CONST.BACKUP_FILE_SUFF).concat(".").concat(fe);
+        return aFileName.split("\\.")[0].
+                concat(CONST.BACKUP_FILE_SUFF).
+                concat(".").
+                concat(aFileName.split("\\.")[1]);
+    }
+     
+    private void saveLines(String aFileName, DefaultListModel alistModel) throws IOException, ArrayIndexOutOfBoundsException {
+        
         ArrayList<String> tempList = null;
         
 
@@ -118,12 +129,12 @@ public class MainFrame extends javax.swing.JFrame {
         tempList = Collections.list(lmSections.elements());
         
 //https://stackoverflow.com/questions/7935858/the-split-method-in-java-does-not-work-on-a-dot
+//        String fname = aFileName.split("\\.")[0];
+//        String fext = ".".concat(aFileName.split("\\.")[1]);
+//        String backupF = fname.concat(CONST.BACKUP_FILE_SUFF).concat(fext);
         
-        String fname = aFileName.split("\\.")[0];
-        String fext = ".".concat(aFileName.split("\\.")[1]);
-        String backupF = fname.concat(CONST.BACKUP_FILE_SUFF).concat(fext);
         FileWriter file = 
-                new FileWriter(backupF, false);
+                new FileWriter(aFileName, false);
         String lnsep = System.getProperty("line.separator");
         // tutaj zapis linia po linii
         String line2save = "";
@@ -138,7 +149,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
         file.flush();
         file.close();
-        return result;
+        
     }
      
      
@@ -332,18 +343,29 @@ public class MainFrame extends javax.swing.JFrame {
         
         @Override
         public void actionPerformed(ActionEvent e) {
+            boolean saveErr = false;
             if (JOptionPane.showConfirmDialog(null, 
-                    "Zapisać do pliku: ".concat(fileName), 
+                    "Zapisać do pliku: ".concat(edBackupFileName.getText()), 
                     "Potwierdzenie", JOptionPane.YES_NO_OPTION, 
                     JOptionPane.QUESTION_MESSAGE) == CONST.CONFIRM_YES )
                     try {
-                        saveLines(fileName, lmSections);
+                        saveLines(edBackupFileName.getText(), lmSections);
                     }
                     catch (IOException ioe) {
-                        JOptionPane.showMessageDialog(null, 
-                                String.format("Błąd podczas zapisu!!!\n%s\nPlik: %s",
-                                        ioe, fileName));
+                        saveErr = true;
                     }
+                    catch (ArrayIndexOutOfBoundsException aiobe) {
+                        saveErr = true;
+                    }
+            if (!saveErr)
+                JOptionPane.showMessageDialog(null, 
+          "Plik zapisany.", 
+           "Informacja",JOptionPane.INFORMATION_MESSAGE);
+            else
+                JOptionPane.showMessageDialog(null, 
+            String.format("Błąd podczas zapisu!!!\nPlik: %s",
+                 fileName));
+
 
           }
     }
@@ -357,13 +379,17 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     public MainFrame(String aFileName) {
+        initComponents();
+
 //        obsługa prametró
         if (!(aFileName == null))
             this.fileName = aFileName;
         else
             this.fileName = CONST.FILE_FO2TWEAKS;
         
-        initComponents();
+        
+        
+        edBackupFileName.setText(makeBackupFileName(aFileName));
         
         this.setResizable(false);
         FramesUtils.centerWindow(this);

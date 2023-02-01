@@ -16,7 +16,7 @@ public class CONST {
     
     public static final String REM_CHAR = ";";
     public static final String KEY_VAL_SEP = "=";
-    public static final String DEF_SPEC_LINE_VAL_SEP = " - ";
+    public static final String DEF_SPEC_LINE_VAL_SEP = " - "; //" - "
     private static final String STR_PAR_LINE_NUM = "%d";
     private static final String STR_PAR_SECTION = "%s";
     private static final String STR_PAR_KEY_VAL = "%s";
@@ -28,6 +28,6 @@ public class CONST {
     
     public static final int CONFIRM_YES = ConfirmationCallback.YES;
     public static final int COMFIRM_NO = ConfirmationCallback.NO;
-    public static final String BACKUP_FILE_SUFF = "_kopia";
+    public static final String BACKUP_FILE_SUFF = " - kopia";
     
 }
