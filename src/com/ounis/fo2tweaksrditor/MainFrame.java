@@ -178,7 +178,7 @@ public class MainFrame extends javax.swing.JFrame {
                     section = line;
                 }
                 else {
-                    System.out.printf("%d - %d\n", linenum, line.length());
+//                    System.out.printf("%d - %d\n", linenum, line.length());
                     if (line.length() == 0) {
                         res.add(String.format(" ",linenum, line));
                         continue;
@@ -463,6 +463,8 @@ public class MainFrame extends javax.swing.JFrame {
         btnSave = new javax.swing.JButton();
         edBackupFileName = new javax.swing.JTextField();
         lblSections1 = new javax.swing.JLabel();
+        lblSections2 = new javax.swing.JLabel();
+        edSearch = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -562,11 +564,16 @@ public class MainFrame extends javax.swing.JFrame {
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSave)
                     .addComponent(edBackupFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(72, Short.MAX_VALUE))
+                .addContainerGap(70, Short.MAX_VALUE))
         );
 
-        lblSections1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        lblSections1.setText("Sekcje");
+        lblSections1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        lblSections1.setText("Szukaj:");
+
+        lblSections2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        lblSections2.setText("Sekcje");
+
+        edSearch.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -578,15 +585,22 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(jpSectDetails, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1053, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblSections1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(9, 9, 9)
+                        .addComponent(lblSections2, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lblSections1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(edSearch)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(39, 39, 39)
-                .addComponent(lblSections1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblSections1)
+                    .addComponent(lblSections2)
+                    .addComponent(edSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -638,6 +652,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTextField edBackupFileName;
     private javax.swing.JTextField edKey;
     private javax.swing.JTextField edLineNum;
+    private javax.swing.JTextField edSearch;
     private javax.swing.JTextField edSectName;
     private javax.swing.JTextField edValueOfKey;
     private javax.swing.JScrollPane jScrollPane1;
@@ -647,6 +662,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel lblLineNum;
     private javax.swing.JLabel lblSectName;
     private javax.swing.JLabel lblSections1;
+    private javax.swing.JLabel lblSections2;
     private javax.swing.JList<String> lstSections;
     // End of variables declaration//GEN-END:variables
 }
