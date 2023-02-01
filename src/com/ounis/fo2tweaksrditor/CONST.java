@@ -4,6 +4,8 @@
  */
 package com.ounis.fo2tweaksrditor;
 
+import javax.security.auth.callback.ConfirmationCallback;
+
 /**
  *
  * @author AndroidDev
@@ -23,5 +25,9 @@ public class CONST {
             concat(STR_PAR_SECTION).concat(DEF_SPEC_LINE_VAL_SEP).concat(STR_PAR_KEY_VAL);
     public static final String _DEF_SPEC_LINE = STR_NUMBER_PREFIX + STR_PAR_LINE_NUM + DEF_SPEC_LINE_VAL_SEP + STR_PAR_SECTION 
             + DEF_SPEC_LINE_VAL_SEP + STR_PAR_KEY_VAL;
+    
+    public static final int CONFIRM_YES = ConfirmationCallback.YES;
+    public static final int COMFIRM_NO = ConfirmationCallback.NO;
+    public static final String BACKUP_FILE_SUFF = "_kopia";
     
 }

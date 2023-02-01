@@ -35,6 +35,7 @@ import java.util.List;
  *
  * @author AndroidDev
  */
+@Deprecated
 public class Fo2Tweaks {
     Fo2Tweaks() {
 

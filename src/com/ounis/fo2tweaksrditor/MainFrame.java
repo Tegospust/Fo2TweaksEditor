@@ -11,8 +11,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import javax.security.auth.callback.ConfirmationCallback;
 import javax.swing.DefaultListModel;
@@ -100,11 +105,41 @@ public class MainFrame extends javax.swing.JFrame {
      }
      
      
-     private boolean saveLines(String aFileName, DefaultListModel alistModel) {
-         boolean result = false;
-         
-         return result;
-     }
+    private boolean saveLines(String aFileName, DefaultListModel alistModel) throws IOException {
+        boolean result = false;
+        ArrayList<String> tempList = null;
+        
+
+//         for(;elements.hasMoreElements();)  
+//               tempList.add(elements.nextElement());
+//      konwersja z DefaultListModel<String> na ArrayList<String>
+//https://stackoverflow.com/questions/7160568/iterating-through-enumeration-of-hastable-keys-throws-nosuchelementexception-err
+//
+        tempList = Collections.list(lmSections.elements());
+        
+//https://stackoverflow.com/questions/7935858/the-split-method-in-java-does-not-work-on-a-dot
+        
+        String fname = aFileName.split("\\.")[0];
+        String fext = ".".concat(aFileName.split("\\.")[1]);
+        String backupF = fname.concat(CONST.BACKUP_FILE_SUFF).concat(fext);
+        FileWriter file = 
+                new FileWriter(backupF, false);
+        String lnsep = System.getProperty("line.separator");
+        // tutaj zapis linia po linii
+        String line2save = "";
+        for (String line : tempList) {
+            if (line.startsWith(CONST.STR_NUMBER_PREFIX)) {
+//                 String keyvalue = 
+                line2save = line.split(CONST.DEF_SPEC_LINE_VAL_SEP)[2];
+            } else {
+                line2save = line;
+            }
+            file.write(((String) line2save).concat(lnsep));
+        }
+        file.flush();
+        file.close();
+        return result;
+    }
      
      
      private ArrayList<String> loadLines(String aFileName) {
@@ -117,11 +152,18 @@ public class MainFrame extends javax.swing.JFrame {
             int linenum = 0;
             while((line = textFile.readLine()) != null) {
                 linenum++;
+//                pusta linia
+                if (line.strip().isEmpty()) {
+                    res.add(line);
+                    continue;
+                }
+//                sekcja
                 if (line.startsWith("[")) {
 //                    res.add(String.format("%s%d %s",
-//                            CONST.NUMBER_PREFIX, 
+//                            CONST.STR_NUMBER_PREFIX, 
 //                            linenum, 
 //                            line));
+                    res.add(line);
                     section = line;
                 }
                 else {
@@ -130,6 +172,7 @@ public class MainFrame extends javax.swing.JFrame {
                         res.add(String.format(" ",linenum, line));
                         continue;
                     }
+//                    komentarz
                     if (line.startsWith(CONST.REM_CHAR)) {
                         res.add(line);
                         continue;
@@ -177,15 +220,15 @@ public class MainFrame extends javax.swing.JFrame {
                  "Potwiedzenie", JOptionPane.YES_NO_OPTION,
                  JOptionPane.QUESTION_MESSAGE) == ConfirmationCallback.YES)
             if (lstSections.getModel().getSize() > 0) {
-                String temp = lstSections.getModel().getElementAt(lstSections.getSelectedIndex());
-                String editedKV = String.format(CONST.DEF_SPEC_LINE,
-                        Integer.valueOf(edLineNum.getText()),
-                        edSectName.getText(),
-                        edKey.getText());
-                if (editedKV.equals(temp.split("=")[0])) {
-                    ((DefaultListModel) lstSections.getModel()).set(lstSections.getSelectedIndex(),
-                            editedKV.concat("=".concat(edValueOfKey.getText())));
-                }
+                    String temp = lstSections.getModel().getElementAt(lstSections.getSelectedIndex());
+                    String editedKV = String.format(CONST.DEF_SPEC_LINE,
+                            Integer.valueOf(edLineNum.getText()),
+                            edSectName.getText(),
+                            edKey.getText());
+                    if (editedKV.equals(temp.split("=")[0])) {
+                        ((DefaultListModel) lstSections.getModel()).set(lstSections.getSelectedIndex(),
+                                editedKV.concat("=".concat(edValueOfKey.getText())));
+                    }
 
             }
     }
@@ -235,7 +278,8 @@ public class MainFrame extends javax.swing.JFrame {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     int sectIDX = lstSections.getSelectedIndex();
                     String itemStr = lmSections.getElementAt(sectIDX);
-                    if ((itemStr.startsWith(CONST.REM_CHAR) || itemStr.strip().isEmpty())) ;
+//                    if ((itemStr.startsWith(CONST.REM_CHAR) || itemStr.strip().isEmpty())) ;
+                    if (!itemStr.startsWith(CONST.STR_NUMBER_PREFIX));
                     else {
                         updateSectionValue(itemStr);
 
@@ -252,6 +296,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
          
      }
+     
      
      class btnChangeKeyAdapter implements KeyListener {
 
@@ -273,15 +318,40 @@ public class MainFrame extends javax.swing.JFrame {
         }
          
      }
-        class BtnChangeClick implements ActionListener {
+     
+    class btnChangeClick implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             changeValueAtList();
 
-        }
-     }
+          }
+    }
 
+    class btnSaveClick implements ActionListener {
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (JOptionPane.showConfirmDialog(null, 
+                    "Zapisać do pliku: ".concat(fileName), 
+                    "Potwierdzenie", JOptionPane.YES_NO_OPTION, 
+                    JOptionPane.QUESTION_MESSAGE) == CONST.CONFIRM_YES )
+                    try {
+                        saveLines(fileName, lmSections);
+                    }
+                    catch (IOException ioe) {
+                        JOptionPane.showMessageDialog(null, 
+                                String.format("Błąd podczas zapisu!!!\n%s\nPlik: %s",
+                                        ioe, fileName));
+                    }
+
+          }
+    }
+
+    
+    private void test() {
+        Fo2TweaksChange fo2tc;
+    }
         
     /**
      * Creates new form MainFrame
@@ -333,8 +403,11 @@ public class MainFrame extends javax.swing.JFrame {
         
         //        btnDelSect.addActionListener(new BtnDelSectClick());
 //      btnChange SETUP
-        btnChange.addActionListener(new BtnChangeClick());
+        btnChange.addActionListener(new btnChangeClick());
         btnChange.addKeyListener(new btnChangeKeyAdapter());
+        
+//        btnSave SETUP
+        btnSave.addActionListener(new btnSaveClick());
     }
         
         
@@ -361,6 +434,8 @@ public class MainFrame extends javax.swing.JFrame {
         lblKey = new javax.swing.JLabel();
         edKey = new javax.swing.JTextField();
         btnChange = new javax.swing.JButton();
+        btnSave = new javax.swing.JButton();
+        edBackupFileName = new javax.swing.JTextField();
         lblSections1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -404,6 +479,9 @@ public class MainFrame extends javax.swing.JFrame {
         btnChange.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         btnChange.setText("Zmień");
 
+        btnSave.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        btnSave.setText("Zapisz");
+
         javax.swing.GroupLayout jpSectDetailsLayout = new javax.swing.GroupLayout(jpSectDetails);
         jpSectDetails.setLayout(jpSectDetailsLayout);
         jpSectDetailsLayout.setHorizontalGroup(
@@ -411,16 +489,25 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(jpSectDetailsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblKeyValue)
-                    .addComponent(lblLineNum)
-                    .addComponent(lblSectName)
-                    .addComponent(lblKey))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jpSectDetailsLayout.createSequentialGroup()
+                            .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(lblLineNum)
+                                .addComponent(lblSectName)
+                                .addComponent(lblKey))
+                            .addGap(65, 65, 65))
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpSectDetailsLayout.createSequentialGroup()
+                            .addComponent(lblKeyValue)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                    .addGroup(jpSectDetailsLayout.createSequentialGroup()
+                        .addComponent(btnSave)
+                        .addGap(68, 68, 68)))
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(edLineNum, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(edValueOfKey)
                     .addComponent(edSectName, javax.swing.GroupLayout.DEFAULT_SIZE, 529, Short.MAX_VALUE)
-                    .addComponent(edKey))
+                    .addComponent(edKey)
+                    .addComponent(edBackupFileName))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnChange)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -440,12 +527,16 @@ public class MainFrame extends javax.swing.JFrame {
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKey)
                     .addComponent(edKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblKeyValue)
                     .addComponent(edValueOfKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnChange))
-                .addContainerGap(61, Short.MAX_VALUE))
+                    .addComponent(btnChange)
+                    .addComponent(lblKeyValue))
+                .addGap(18, 18, 18)
+                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnSave)
+                    .addComponent(edBackupFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(72, Short.MAX_VALUE))
         );
 
         lblSections1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
@@ -459,7 +550,7 @@ public class MainFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jpSectDetails, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1045, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1053, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lblSections1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
@@ -517,6 +608,8 @@ public class MainFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnChange;
+    private javax.swing.JButton btnSave;
+    private javax.swing.JTextField edBackupFileName;
     private javax.swing.JTextField edKey;
     private javax.swing.JTextField edLineNum;
     private javax.swing.JTextField edSectName;
