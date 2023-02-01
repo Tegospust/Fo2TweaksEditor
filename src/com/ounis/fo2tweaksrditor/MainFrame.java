@@ -131,7 +131,7 @@ public class MainFrame extends javax.swing.JFrame {
         
 //https://stackoverflow.com/questions/7935858/the-split-method-in-java-does-not-work-on-a-dot
 //        String fname = aFileName.split("\\.")[0];
-//        String fext = ".".concat(aFileName.split("\\.")[1]);
+//        String fext = ".".concat(aFileName.split("\\.")[1+666]);
 //        String backupF = fname.concat(CONST.BACKUP_FILE_SUFF).concat(fext);
         
         FileWriter file = 
@@ -244,10 +244,34 @@ public class MainFrame extends javax.swing.JFrame {
 
             }
     }
-     
+//    TO-DO: przeszukiwanie listy sekcji
+    private void searchlstSections() {
+        JOptionPane.showMessageDialog(null, 
+                "Przeszukiwanie: ".concat(edSearch.getText()));
+    }
 //   obsługa kliknięcia myszy na liście - nieobsługiwane
      @Deprecated
      class lstSectionsMouseHandler extends MouseAdapter {
+         
+     }
+     
+     class edSearchKeyListener implements KeyListener {
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                searchlstSections();
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+//            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
          
      }
      
@@ -348,25 +372,24 @@ public class MainFrame extends javax.swing.JFrame {
             if (JOptionPane.showConfirmDialog(null, 
                     "Zapisać do pliku: ".concat(edBackupFileName.getText()), 
                     "Potwierdzenie", JOptionPane.YES_NO_OPTION, 
-                    JOptionPane.QUESTION_MESSAGE) == CONST.CONFIRM_YES )
-                    try {
-                        saveLines(edBackupFileName.getText(), lmSections);
-                    }
-                    catch (IOException ioe) {
-                        saveErr = true;
-                    }
-                    catch (ArrayIndexOutOfBoundsException aiobe) {
-                        saveErr = true;
-                    }
-            if (!saveErr)
-                JOptionPane.showMessageDialog(null, 
-          "Plik zapisany.", 
-           "Informacja",JOptionPane.INFORMATION_MESSAGE);
-            else
-                JOptionPane.showMessageDialog(null, 
-            String.format("Błąd podczas zapisu!!!\nPlik: %s",
-                 fileName));
-
+                    JOptionPane.QUESTION_MESSAGE) == CONST.CONFIRM_YES ) {
+                        try {
+                            saveLines(edBackupFileName.getText(), lmSections);
+                        }
+                        catch (IOException | ArrayIndexOutOfBoundsException except) {
+                            System.err.println("Uuuups: ".concat(except.toString()));
+                            saveErr = true;
+                        }
+//                        catch (ArrayIndexOutOfBoundsException aiobe) {
+//                            saveErr = true;
+//                        }
+                        if (!saveErr)
+                            JOptionPane.showMessageDialog(null, "Plik zapisany.","Informacja",JOptionPane.INFORMATION_MESSAGE);
+                        else
+                            JOptionPane.showMessageDialog(null, 
+                                    String.format("Błąd podczas zapisu!!!\nPlik: %s",fileName),""
+                                            + "Błąd",JOptionPane.ERROR_MESSAGE);
+                }
 
           }
     }
@@ -436,6 +459,8 @@ public class MainFrame extends javax.swing.JFrame {
         
 //        btnSave SETUP
         btnSave.addActionListener(new btnSaveClick());
+//        edSearch SET UP
+        edSearch.addKeyListener(new edSearchKeyListener());
     }
         
         
@@ -569,12 +594,13 @@ public class MainFrame extends javax.swing.JFrame {
                 .addContainerGap(70, Short.MAX_VALUE))
         );
 
-        lblSections1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        lblSections1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         lblSections1.setText("Szukaj:");
 
         lblSections2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         lblSections2.setText("Sekcje");
 
+        edSearch.setBackground(new java.awt.Color(204, 255, 255));
         edSearch.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
