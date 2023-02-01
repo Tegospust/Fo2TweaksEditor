@@ -24,6 +24,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListDataListener;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
@@ -404,6 +405,7 @@ public class MainFrame extends javax.swing.JFrame {
             this.setTitle(this.getTitle()+ " "+this.fileName);
         
 //        lstSections SETUP
+        lstSections.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         lmSections = new DefaultListModel();
         lmSections.addAll(specLines);
         lstSections.setModel(lmSections);
