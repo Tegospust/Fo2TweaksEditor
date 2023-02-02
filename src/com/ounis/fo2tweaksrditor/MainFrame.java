@@ -245,9 +245,21 @@ public class MainFrame extends javax.swing.JFrame {
             }
     }
 //    TO-DO: przeszukiwanie listy sekcji
-    private void searchlstSections() {
-        JOptionPane.showMessageDialog(null, 
-                "Przeszukiwanie: ".concat(edSearch.getText()));
+    private int searchlstSections(String aSearchingTxt) {
+        Enumeration<String> elements = lmSections.elements();
+        int linenum = -1;
+        String line = "";
+        while(elements.asIterator().hasNext()) {
+            linenum += 1;
+            line = elements.asIterator().next();
+            if (line.contains(aSearchingTxt)) {
+//                System.out.println(String.format("%d -> %s", linenum, line));
+                break;
+            }
+        }
+        return linenum;
+//        JOptionPane.showMessageDialog(null, 
+//                "Przeszukiwanie: ".concat(edSearch.getText()));
     }
 //   obsługa kliknięcia myszy na liście - nieobsługiwane
      @Deprecated
@@ -263,9 +275,16 @@ public class MainFrame extends javax.swing.JFrame {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                searchlstSections();
+            if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+                int foundlinenum = searchlstSections(edSearch.getText());
+                if (foundlinenum > -1) {
+                    lstSections.ensureIndexIsVisible(foundlinenum);
+                    lstSections.setSelectedIndex(foundlinenum);
+//                    edValueOfKey.requestFocus();
+                }
             }
+            else
+                lstSections.requestFocus();
         }
 
         @Override
@@ -281,7 +300,7 @@ public class MainFrame extends javax.swing.JFrame {
         public void keyTyped(KeyEvent e) {
 //            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
-
+//https://stackoverflow.com/questions/36560522/add-string-array-to-arraylist
         @Override
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -613,9 +632,8 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(jpSectDetails, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1053, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(9, 9, 9)
                         .addComponent(lblSections2, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(15, 15, 15)
                         .addComponent(lblSections1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(edSearch)))
