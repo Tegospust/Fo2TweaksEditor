@@ -10,6 +10,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.border.TitledBorder;
 
 /*
@@ -31,6 +32,7 @@ public class TitledBorderTest {
           });
      }
 
+         
      private void create() {
 
          String s = "This is a TitledBorder update test.";
@@ -38,6 +40,7 @@ public class TitledBorderTest {
          final TitledBorder tb =
              BorderFactory.createTitledBorder(new Date().toString());
          label.setBorder(tb);
+         
          JFrame f = new JFrame("Titled Border Test");
          f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
          f.add(label);

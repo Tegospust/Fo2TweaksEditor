@@ -119,15 +119,12 @@ public class MainFrame extends javax.swing.JFrame {
      
     private void saveLines(String aFileName, DefaultListModel alistModel) throws IOException, ArrayIndexOutOfBoundsException {
         
-        ArrayList<String> tempList = null;
-        
+//        ArrayList<String> tempList = null;
 
-//         for(;elements.hasMoreElements();)  
-//               tempList.add(elements.nextElement());
 //      konwersja z DefaultListModel<String> na ArrayList<String>
 //https://stackoverflow.com/questions/7160568/iterating-through-enumeration-of-hastable-keys-throws-nosuchelementexception-err
 //
-        tempList = Collections.list(lmSections.elements());
+//        tempList = Collections.list(lmSections.elements());
         
 //https://stackoverflow.com/questions/7935858/the-split-method-in-java-does-not-work-on-a-dot
 //        String fname = aFileName.split("\\.")[0];
@@ -139,7 +136,10 @@ public class MainFrame extends javax.swing.JFrame {
         String lnsep = System.getProperty("line.separator");
         // tutaj zapis linia po linii
         String line2save = "";
-        for (String line : tempList) {
+        Enumeration<String> elements = alistModel.elements();
+//        for (String line : tempList) 
+        while(elements.hasMoreElements()) {
+            String line = elements.nextElement();
             if (line.startsWith(CONST.STR_NUMBER_PREFIX)) {
 //                 String keyvalue = 
                 line2save = line.split(CONST.DEF_SPEC_LINE_VAL_SEP)[2];
