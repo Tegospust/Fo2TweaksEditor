@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListDataListener;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
@@ -43,6 +44,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private DefaultListModel<String> lmSections;
     private String fileName;
+    private String fileName2Save;
     
 
     private boolean fileLoadErr = false;
@@ -107,7 +109,7 @@ public class MainFrame extends javax.swing.JFrame {
      }
      
      
-    private String makeBackupFileName(String aFileName) {
+    private String makeSaveFileName(String aFileName) {
 //        String fn = aFileName.split("\\.")[0];
 //        String fe = aFileName.split("\\.")[1];
 //        return fn.concat(CONST.BACKUP_FILE_SUFF).concat(".").concat(fe);
@@ -228,21 +230,25 @@ public class MainFrame extends javax.swing.JFrame {
             return null;
     }     
      private void changeValueAtList() {
-         if (JOptionPane.showConfirmDialog(null, "Kontynuować?",
-                 "Potwiedzenie", JOptionPane.YES_NO_OPTION,
-                 JOptionPane.QUESTION_MESSAGE) == ConfirmationCallback.YES)
-            if (lstSections.getModel().getSize() > 0) {
-                    String temp = lstSections.getModel().getElementAt(lstSections.getSelectedIndex());
-                    String editedKV = String.format(CONST.DEF_SPEC_LINE,
-                            Integer.valueOf(edLineNum.getText()),
-                            edSectName.getText(),
-                            edKey.getText());
-                    if (editedKV.equals(temp.split("=")[0])) {
-                        ((DefaultListModel) lstSections.getModel()).set(lstSections.getSelectedIndex(),
-                                editedKV.concat("=".concat(edValueOfKey.getText())));
-                    }
+         if (!edValueOfKey.getText().isEmpty()) {
+            if (JOptionPane.showConfirmDialog(null, "Kontynuować?",
+                    "Potwiedzenie", JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE) == ConfirmationCallback.YES)
+               if (lstSections.getModel().getSize() > 0) {
+                       String temp = lstSections.getModel().getElementAt(lstSections.getSelectedIndex());
+                       String editedKV = String.format(CONST.DEF_SPEC_LINE,
+                               Integer.valueOf(edLineNum.getText()),
+                               edSectName.getText(),
+                               edKey.getText());
+                       if (editedKV.equals(temp.split("=")[0])) {
+                           ((DefaultListModel) lstSections.getModel()).set(lstSections.getSelectedIndex(),
+                                   editedKV.concat("=".concat(edValueOfKey.getText())));
+                       }
 
-            }
+               }
+         }
+         else
+             edValueOfKey.requestFocus();
     }
 //    TO-DO: przeszukiwanie listy sekcji
     private int searchlstSections(String aSearchingTxt) {
@@ -252,7 +258,7 @@ public class MainFrame extends javax.swing.JFrame {
         while(elements.asIterator().hasNext()) {
             linenum += 1;
             line = elements.asIterator().next();
-            if (line.contains(aSearchingTxt)) {
+            if (line.toLowerCase().contains(aSearchingTxt.toLowerCase())) {
 //                System.out.println(String.format("%d -> %s", linenum, line));
                 break;
             }
@@ -364,7 +370,6 @@ public class MainFrame extends javax.swing.JFrame {
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_ENTER)
                 changeValueAtList();
-//            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
 
         @Override
@@ -388,12 +393,21 @@ public class MainFrame extends javax.swing.JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             boolean saveErr = false;
-            if (JOptionPane.showConfirmDialog(null, 
-                    "Zapisać do pliku: ".concat(edBackupFileName.getText()), 
-                    "Potwierdzenie", JOptionPane.YES_NO_OPTION, 
-                    JOptionPane.QUESTION_MESSAGE) == CONST.CONFIRM_YES ) {
+//            if (JOptionPane.showConfirmDialog(null, 
+//                    "Zapisać do pliku: ".concat(edBackupFileName.getText()), 
+//                    "Potwierdzenie", JOptionPane.YES_NO_OPTION, 
+//                    JOptionPane.QUESTION_MESSAGE) == CONST.CONFIRM_YES ) 
+            String[] availableFileNames = new String[] {fileName, makeSaveFileName(fileName)};
+            Object inputfilename = JOptionPane.showInputDialog(null, "Wybierz plik", 
+                    "Zapis...", 
+                    JOptionPane.QUESTION_MESSAGE,null,
+                    availableFileNames,
+                    availableFileNames[1]
+                    );
+             if (inputfilename != null) {
+                        
                         try {
-                            saveLines(edBackupFileName.getText(), lmSections);
+                            saveLines((String)inputfilename, lmSections);
                         }
                         catch (IOException | ArrayIndexOutOfBoundsException except) {
                             System.err.println("Uuuups: ".concat(except.toString()));
@@ -422,6 +436,12 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     public MainFrame(String aFileName) {
+//      spolszczenie przycisków okien dialogowych
+        UIManager.put("OptionPane.noButtonText", "Nie");
+        UIManager.put("OptionPane.yesButtonText", "Tak");
+        UIManager.put("OptionPane.cancelButtonText", "Anuluj");
+        UIManager.put("OptionPane.okButtonText", "OK");
+        
         initComponents();
 
 //        obsługa prametró
@@ -431,8 +451,8 @@ public class MainFrame extends javax.swing.JFrame {
             this.fileName = CONST.FILE_FO2TWEAKS;
         
         
-        
-        edBackupFileName.setText(makeBackupFileName(aFileName));
+        edBackupFileName.setVisible(false);
+//        edBackupFileName.setText(makeBackupFileName(aFileName));
         
         this.setResizable(false);
         FramesUtils.centerWindow(this);
@@ -478,7 +498,7 @@ public class MainFrame extends javax.swing.JFrame {
         
 //        btnSave SETUP
         btnSave.addActionListener(new btnSaveClick());
-//        edSearch SET UP
+//        edSearch SETUP
         edSearch.addKeyListener(new edSearchKeyListener());
     }
         
@@ -554,7 +574,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnChange.setText("Zmień");
 
         btnSave.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        btnSave.setText("Zapisz");
+        btnSave.setText("Zapisz plik");
 
         javax.swing.GroupLayout jpSectDetailsLayout = new javax.swing.GroupLayout(jpSectDetails);
         jpSectDetails.setLayout(jpSectDetailsLayout);
@@ -563,28 +583,30 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(jpSectDetailsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jpSectDetailsLayout.createSequentialGroup()
-                            .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(lblLineNum)
-                                .addComponent(lblSectName)
-                                .addComponent(lblKey))
-                            .addGap(65, 65, 65))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpSectDetailsLayout.createSequentialGroup()
-                            .addComponent(lblKeyValue)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                     .addGroup(jpSectDetailsLayout.createSequentialGroup()
-                        .addComponent(btnSave)
-                        .addGap(68, 68, 68)))
+                        .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblLineNum)
+                            .addComponent(lblSectName)
+                            .addComponent(lblKey))
+                        .addGap(65, 65, 65))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpSectDetailsLayout.createSequentialGroup()
+                        .addComponent(lblKeyValue)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(edLineNum, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(edValueOfKey)
                     .addComponent(edSectName, javax.swing.GroupLayout.DEFAULT_SIZE, 529, Short.MAX_VALUE)
                     .addComponent(edKey)
-                    .addComponent(edBackupFileName))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnChange)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(edBackupFileName, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jpSectDetailsLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnChange)
+                        .addContainerGap(277, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpSectDetailsLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
         jpSectDetailsLayout.setVerticalGroup(
             jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -607,10 +629,10 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(btnChange)
                     .addComponent(lblKeyValue))
                 .addGap(18, 18, 18)
-                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnSave)
-                    .addComponent(edBackupFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(70, Short.MAX_VALUE))
+                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(edBackupFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSave))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         lblSections1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
@@ -630,7 +652,7 @@ public class MainFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jpSectDetails, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1053, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1054, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lblSections2, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(15, 15, 15)
@@ -648,9 +670,9 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(lblSections2)
                     .addComponent(edSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jpSectDetails, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 406, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                .addComponent(jpSectDetails, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
