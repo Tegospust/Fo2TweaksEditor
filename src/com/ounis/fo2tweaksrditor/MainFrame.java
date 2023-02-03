@@ -1,6 +1,7 @@
 package com.ounis.fo2tweaksrditor;
 
 import com.ounis.utils.FramesUtils;
+import com.ounis.utils.StrOper;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -247,21 +248,34 @@ public class MainFrame extends javax.swing.JFrame {
 
                }
          }
-         else
-             edValueOfKey.requestFocus();
+         else {
+             JOptionPane.showMessageDialog(null, 
+                     "Należy wybrać pozycję z listy oznaczoną znakiem '#'");
+             lstSections.requestFocus();
+         }
     }
 //    TO-DO: przeszukiwanie listy sekcji
-    private int searchlstSections(String aSearchingTxt) {
+    private int searchlstSections(String aSearchingTxt, boolean aCaseInsensitive) {
+        if (aCaseInsensitive) 
+            aSearchingTxt = aSearchingTxt.toLowerCase();
         Enumeration<String> elements = lmSections.elements();
         int linenum = -1;
         String line = "";
         while(elements.asIterator().hasNext()) {
             linenum += 1;
             line = elements.asIterator().next();
-            if (line.toLowerCase().contains(aSearchingTxt.toLowerCase())) {
+            if (aCaseInsensitive)
+                line = line.toLowerCase();
+            int pos = StrOper.pascalPos(line,aSearchingTxt); 
+//                if (pos > -1) {
+            if (line.contains(aSearchingTxt)) {
+//                    System.out.printf("%s - %s - match at %d\n",line,aSearchingTxt,  pos);
 //                System.out.println(String.format("%d -> %s", linenum, line));
-                break;
-            }
+                    break;
+                }
+                else 
+                    ;//System.out.printf("no match!\n");
+
         }
         return linenum;
 //        JOptionPane.showMessageDialog(null, 
@@ -281,8 +295,9 @@ public class MainFrame extends javax.swing.JFrame {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-                int foundlinenum = searchlstSections(edSearch.getText());
+            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                int foundlinenum = searchlstSections(edSearch.getText(), 
+                        !cbCaseInsensitive.isSelected());
                 if (foundlinenum > -1) {
                     lstSections.ensureIndexIsVisible(foundlinenum);
                     lstSections.setSelectedIndex(foundlinenum);
@@ -427,7 +442,15 @@ public class MainFrame extends javax.swing.JFrame {
           }
     }
 
-    
+    class cbCaseInsensitiveClick implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            edSearch.setText("");
+            edSearch.requestFocus();
+        }
+        
+    }
     private void test() {
         Fo2TweaksChange fo2tc;
     }
@@ -436,7 +459,10 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     public MainFrame(String aFileName) {
+//http://www.java2s.com/Tutorial/Java/0240__Swing/SettingJOptionPanebuttonlabelstoFrench.htm
+//
 //      spolszczenie przycisków okien dialogowych
+//
         UIManager.put("OptionPane.noButtonText", "Nie");
         UIManager.put("OptionPane.yesButtonText", "Tak");
         UIManager.put("OptionPane.cancelButtonText", "Anuluj");
@@ -444,21 +470,23 @@ public class MainFrame extends javax.swing.JFrame {
         
         initComponents();
 
-//        obsługa prametró
+//        obsługa prametrów
         if (!(aFileName == null))
             this.fileName = aFileName;
         else
             this.fileName = CONST.FILE_FO2TWEAKS;
         
         
-        edBackupFileName.setVisible(false);
+        edBackupFileName.setVisible(false); // nie używane
 //        edBackupFileName.setText(makeBackupFileName(aFileName));
         
+//      MainFrame SETUP
         this.setResizable(false);
         FramesUtils.centerWindow(this);
         this.setTitle("Fo2Tweaks");
 //        JOptionPane.showMessageDialog(null, this.fileName);
         
+//      Przygotowanie struktur do zapełnienia listy
         ArrayList<String> specLines = loadLines(this.fileName);
         if (specLines.size() == 0) {
             JOptionPane.showMessageDialog(null, "Coś poszło nie tak z wczytywaniem pliku ".concat(this.fileName));
@@ -500,6 +528,8 @@ public class MainFrame extends javax.swing.JFrame {
         btnSave.addActionListener(new btnSaveClick());
 //        edSearch SETUP
         edSearch.addKeyListener(new edSearchKeyListener());
+//        cbCaseInsensitive SETUP
+        cbCaseInsensitive.addActionListener(new cbCaseInsensitiveClick());
     }
         
         
@@ -531,6 +561,7 @@ public class MainFrame extends javax.swing.JFrame {
         lblSections1 = new javax.swing.JLabel();
         lblSections2 = new javax.swing.JLabel();
         edSearch = new javax.swing.JTextField();
+        cbCaseInsensitive = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -644,6 +675,9 @@ public class MainFrame extends javax.swing.JFrame {
         edSearch.setBackground(new java.awt.Color(204, 255, 255));
         edSearch.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
 
+        cbCaseInsensitive.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        cbCaseInsensitive.setText("Uwzględniaj wielkość liter");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -658,7 +692,9 @@ public class MainFrame extends javax.swing.JFrame {
                         .addGap(15, 15, 15)
                         .addComponent(lblSections1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(edSearch)))
+                        .addComponent(edSearch)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(cbCaseInsensitive)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -668,7 +704,8 @@ public class MainFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblSections1)
                     .addComponent(lblSections2)
-                    .addComponent(edSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(edSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cbCaseInsensitive))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 406, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
@@ -717,6 +754,7 @@ public class MainFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnChange;
     private javax.swing.JButton btnSave;
+    private javax.swing.JCheckBox cbCaseInsensitive;
     private javax.swing.JTextField edBackupFileName;
     private javax.swing.JTextField edKey;
     private javax.swing.JTextField edLineNum;
