@@ -11,13 +11,20 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import javax.security.auth.callback.ConfirmationCallback;
@@ -109,7 +116,11 @@ public class MainFrame extends javax.swing.JFrame {
                  edKey.getText()+CONST.KEY_VAL_SEP+edValueOfKey.getText());
      }
      
-     
+    /**
+     * tworzy nazwę pliku do zapisu: nazwa_pliku + " - kopia" + rozszerzenie
+     * @param aFileName
+     * @return String
+     */ 
     private String makeSaveFileName(String aFileName) {
 //        String fn = aFileName.split("\\.")[0];
 //        String fe = aFileName.split("\\.")[1];
@@ -118,6 +129,25 @@ public class MainFrame extends javax.swing.JFrame {
                 concat(CONST.BACKUP_FILE_SUFF).
                 concat(".").
                 concat(aFileName.split("\\.")[1]);
+    }
+    /**
+     * tworzy nazwę pliku do zapisu w oparciu o bieżącą datę i czas
+     * @param aFileName
+     * @return String
+    */
+    private String makeSaveBackupFileName(String aFileName) {
+        String chunk = (new Date()).toString();
+        chunk = chunk.replace(":", "_");
+        String[] vals = chunk.split(" ");
+        chunk = vals[vals.length-1] + vals[1] + vals[2] + vals[3].replace("_", "");
+//https://stackoverflow.com/questions/8585879/how-to-remove-all-elements-in-string-array-in-java        
+        Arrays.fill(vals, null);
+        vals = new String[0];
+        
+        vals = aFileName.split("\\.");
+        
+        
+        return vals[0] + "_" + chunk + "." + vals[vals.length-1];
     }
      
     private void saveLines(String aFileName, DefaultListModel alistModel) throws IOException, ArrayIndexOutOfBoundsException {
@@ -153,7 +183,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
         file.flush();
         file.close();
-        
+
     }
      
      
@@ -205,6 +235,31 @@ public class MainFrame extends javax.swing.JFrame {
          
          return res;
      }
+    /**
+     * Kopiowanie plików:<br>
+     * źródło: https://stackoverflow.com/questions/4004760/fastest-way-to-copy-files-in-java
+     * 
+     * @param source
+     * @param dest
+     * @throws IOException 
+     */
+    private static void copyFileUsingStream(File source, File dest) throws IOException {
+        InputStream is = null;
+        OutputStream os = null;
+        try {
+            is = new FileInputStream(source);
+            os = new FileOutputStream(dest);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+        } finally {
+            is.close();
+            os.close();
+        }
+    }
+     
      //TODO wyciagnie numeru linii z wyswietlanej linii w liście
      @Deprecated
     private int getLineNumFromLine(String aLine) {
@@ -295,7 +350,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (e.getKeyCode() != KeyEvent.VK_ENTER) {
                 int foundlinenum = searchlstSections(edSearch.getText(), 
                         !cbCaseInsensitive.isSelected());
                 if (foundlinenum > -1) {
@@ -374,7 +429,7 @@ public class MainFrame extends javax.swing.JFrame {
      }
      
      
-     class btnChangeKeyAdapter implements KeyListener {
+     class btnChangeKeyListener implements KeyListener {
 
         @Override
         public void keyTyped(KeyEvent e) {
@@ -412,15 +467,29 @@ public class MainFrame extends javax.swing.JFrame {
 //                    "Zapisać do pliku: ".concat(edBackupFileName.getText()), 
 //                    "Potwierdzenie", JOptionPane.YES_NO_OPTION, 
 //                    JOptionPane.QUESTION_MESSAGE) == CONST.CONFIRM_YES ) 
-            String[] availableFileNames = new String[] {fileName, makeSaveFileName(fileName)};
+            String[] availableFileName2Save = new String[] {fileName, makeSaveBackupFileName(fileName)};
             Object inputfilename = JOptionPane.showInputDialog(null, "Wybierz plik", 
                     "Zapis...", 
-                    JOptionPane.QUESTION_MESSAGE,null,
-                    availableFileNames,
-                    availableFileNames[1]
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    availableFileName2Save,
+                    availableFileName2Save[1]
                     );
              if (inputfilename != null) {
-                        
+//              tutaj kopia pliku
+                        if (cbMakeACopy.isSelected()) {
+                            String backupFileName = makeSaveFileName(fileName);
+                            try {
+                                copyFileUsingStream(new File(fileName), new File(backupFileName));
+                            }
+                            catch(IOException ioex) {
+                                JOptionPane.showMessageDialog(null, 
+                                        "Błąd podczas wykonywania kopii!\n".concat(backupFileName), 
+                                        "Błąd", 
+                                        JOptionPane.ERROR_MESSAGE);
+                                System.err.println(ioex);
+                            }
+                        }
                         try {
                             saveLines((String)inputfilename, lmSections);
                         }
@@ -522,12 +591,14 @@ public class MainFrame extends javax.swing.JFrame {
         //        btnDelSect.addActionListener(new BtnDelSectClick());
 //      btnChange SETUP
         btnChange.addActionListener(new btnChangeClick());
-        btnChange.addKeyListener(new btnChangeKeyAdapter());
+        btnChange.addKeyListener(new btnChangeKeyListener());
         
 //        btnSave SETUP
         btnSave.addActionListener(new btnSaveClick());
+        
 //        edSearch SETUP
         edSearch.addKeyListener(new edSearchKeyListener());
+        
 //        cbCaseInsensitive SETUP
         cbCaseInsensitive.addActionListener(new cbCaseInsensitiveClick());
     }
@@ -558,6 +629,7 @@ public class MainFrame extends javax.swing.JFrame {
         btnChange = new javax.swing.JButton();
         btnSave = new javax.swing.JButton();
         edBackupFileName = new javax.swing.JTextField();
+        cbMakeACopy = new javax.swing.JCheckBox();
         lblSections1 = new javax.swing.JLabel();
         lblSections2 = new javax.swing.JLabel();
         edSearch = new javax.swing.JTextField();
@@ -607,6 +679,9 @@ public class MainFrame extends javax.swing.JFrame {
         btnSave.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         btnSave.setText("Zapisz plik");
 
+        cbMakeACopy.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        cbMakeACopy.setText("Wykonaj kopię pliku");
+
         javax.swing.GroupLayout jpSectDetailsLayout = new javax.swing.GroupLayout(jpSectDetails);
         jpSectDetails.setLayout(jpSectDetailsLayout);
         jpSectDetailsLayout.setHorizontalGroup(
@@ -629,37 +704,43 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(edSectName, javax.swing.GroupLayout.DEFAULT_SIZE, 529, Short.MAX_VALUE)
                     .addComponent(edKey)
                     .addComponent(edBackupFileName, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jpSectDetailsLayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnChange)
-                        .addContainerGap(277, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpSectDetailsLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+                        .addComponent(cbMakeACopy))
+                    .addGroup(jpSectDetailsLayout.createSequentialGroup()
+                        .addGap(0, 94, Short.MAX_VALUE)
+                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         jpSectDetailsLayout.setVerticalGroup(
             jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpSectDetailsLayout.createSequentialGroup()
-                .addGap(8, 8, 8)
-                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblLineNum)
-                    .addComponent(edLineNum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jpSectDetailsLayout.createSequentialGroup()
+                        .addGap(8, 8, 8)
+                        .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lblLineNum)
+                            .addComponent(edLineNum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lblSectName)
+                            .addComponent(edSectName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lblKey)
+                            .addComponent(edKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(edValueOfKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnChange)
+                            .addComponent(lblKeyValue)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpSectDetailsLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(cbMakeACopy)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblSectName)
-                    .addComponent(edSectName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblKey)
-                    .addComponent(edKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(edValueOfKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnChange)
-                    .addComponent(lblKeyValue))
-                .addGap(18, 18, 18)
                 .addGroup(jpSectDetailsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(edBackupFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnSave))
@@ -708,7 +789,7 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(cbCaseInsensitive))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 406, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
                 .addComponent(jpSectDetails, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -755,6 +836,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnChange;
     private javax.swing.JButton btnSave;
     private javax.swing.JCheckBox cbCaseInsensitive;
+    private javax.swing.JCheckBox cbMakeACopy;
     private javax.swing.JTextField edBackupFileName;
     private javax.swing.JTextField edKey;
     private javax.swing.JTextField edLineNum;
